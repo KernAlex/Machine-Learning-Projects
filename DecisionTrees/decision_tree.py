@@ -175,3 +175,50 @@ class DecisionTree:
         lines = [first_line, second_line] + [a + u * ' ' + b for a, b in zipped_lines]
         return lines, n + m + u, max(p, q) + 2, n + u // 2
 
+##############################################################################################
+#
+# Random Forest uses Decision Trees, so both go in this file
+# 
+##############################################################################################
+class RandomForest():
+    
+    def __init__(self, X, numForests, features=[]):
+        """
+        creates numForests worth of DecisionTrees
+        """
+        self.forests = []
+        for i in range(numForests):
+            self.forests.append(DecisionTree(X, features=features))
+        self.num = numForests
+
+
+    def fit(self, X, y, depth, train_size, seed=42):
+        """
+        randomize the seed, uses a random batch of train_size 
+        inputs to train each tree. 
+        """
+        import random as rand
+        rand.seed(seed)
+        for i in self.forests:
+            newX, newy = self.pull_rand_data(X, y, rand, train_size)
+            i.fit(newX, newy, depth)
+
+    def pull_rand_data(self, X, y, rand, train_size):
+        newX = []
+        newy = []
+        for i in range(train_size):
+            j = rand.randint(0, len(X)-1)
+            newX.append(X[j])
+            newy.append(y[j])
+        return newX, newy
+
+    
+    def predict(self, X):
+        """
+        Has each forest predict the values
+        """
+        x = [i.predict(X) for i in self.forests]
+        if np.mean(x) <= 0.5:
+            return 0
+        return 1
+
